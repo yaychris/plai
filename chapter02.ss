@@ -20,6 +20,6 @@
 
 (define (calc an-ae)
   (type-case AE an-ae
-             (num (n) n)
-             (add (l r) (+ (calc l) (calc r)))
-             (sub (l r) (- (calc l) (calc r)))))
+    (num (n) n)
+    (add (l r) (+ (calc l) (calc r)))
+    (sub (l r) (- (calc l) (calc r)))))

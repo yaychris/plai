@@ -37,35 +37,35 @@
 
 (define (subst expr sub-id val)
   (type-case F1WAE expr
-             (num (n) expr)
-             (add (l r) (add (subst l sub-id val)
-                             (subst r sub-id val)))
-             (with (bound-id named-expr bound-body)
-                   (if (symbol=? bound-id sub-id)
-                       (with bound-id
-                             (subst named-expr sub-id val)
-                             bound-body)
-                       (with bound-id
-                             (subst named-expr sub-id val)
-                             (subst bound-body sub-id val))))
-             (id (v) (if (symbol=? v sub-id) val expr))
-             (app (fun-name arg-expr)
-                  (app fun-name (subst arg-expr sub-id val)))))
+    (num (n) expr)
+    (add (l r) (add (subst l sub-id val)
+                    (subst r sub-id val)))
+    (with (bound-id named-expr bound-body)
+          (if (symbol=? bound-id sub-id)
+              (with bound-id
+                    (subst named-expr sub-id val)
+                    bound-body)
+              (with bound-id
+                    (subst named-expr sub-id val)
+                    (subst bound-body sub-id val))))
+    (id (v) (if (symbol=? v sub-id) val expr))
+    (app (fun-name arg-expr)
+         (app fun-name (subst arg-expr sub-id val)))))
 
 
 (define (interp expr fun-defs)
   (type-case F1WAE expr
-             (num (n) n)
-             (add (l r) (+ (interp l fun-defs) (interp r fun-defs)))
-             (with (bound-id named-expr bound-body)
-                   (interp (subst bound-body
-                                  bound-id
-                                  (num (interp named-expr fun-defs)))
-                           fun-defs))
-             (id (v) (error 'interp "free identifier"))
-             (app (fun-name arg-expr)
-                  (local ((define the-fun-def (lookup-fundef fun-name fun-defs)))
-                    (interp (subst (fundef-body the-fun-def)
-                                   (fundef-arg-name the-fun-def)
-                                   (num (interp arg-expr fun-defs)))
-                            fun-defs)))))
+    (num (n) n)
+    (add (l r) (+ (interp l fun-defs) (interp r fun-defs)))
+    (with (bound-id named-expr bound-body)
+          (interp (subst bound-body
+                         bound-id
+                         (num (interp named-expr fun-defs)))
+                  fun-defs))
+    (id (v) (error 'interp "free identifier"))
+    (app (fun-name arg-expr)
+         (local ((define the-fun-def (lookup-fundef fun-name fun-defs)))
+           (interp (subst (fundef-body the-fun-def)
+                          (fundef-arg-name the-fun-def)
+                          (num (interp arg-expr fun-defs)))
+                   fun-defs)))))

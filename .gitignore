@@ -1,1 +1,5 @@
 *~
+*.o
+a.out
+tools/peg/peg
+tools/peg/leg

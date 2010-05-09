@@ -1,0 +1,32 @@
+%{
+#include <stdio.h>
+#define YYSTYPE char*
+#define SIZE    128
+%}
+
+Expr = - ae:AE -            { printf("%s\n", ae); }
+
+AE = n:Number               {
+                              char* buffer = malloc(sizeof(char) * SIZE);
+                              sprintf(buffer, "(num %s)", n);
+                              $$ = buffer;
+                            }
+   | LBRACE
+     op:OP
+     l:AE
+     r:AE
+     RBRACE                 {
+                              char* buffer = malloc(sizeof(char) * SIZE);
+                              sprintf(buffer, "(%s %s %s)", op, l, r);
+                              $$ = buffer;
+                            }
+
+Number = < [0-9]+ >       - { $$ = yytext; }
+
+OP     = ( PLUS | MINUS ) - 
+PLUS   = '+'              - { $$ = "add"; }
+MINUS  = '-'              - { $$ = "sub"; }
+LBRACE = '{'              -
+RBRACE = '}'              -
+
+- = [ \t]*

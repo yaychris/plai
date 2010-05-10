@@ -1,0 +1,36 @@
+%{
+#include <stdio.h>
+#include "ae.h"
+
+#define YYSTYPE Val
+%}
+
+Expr = - ae:AE -            { tree = (AE*) ae; }
+
+AE = Number
+   | LBRACE
+     o:OP
+     l:AE
+     r:AE
+     RBRACE                 {
+                              AEOp* op = malloc(sizeof(AEOp));
+                              op->type = o;
+                              op->lhs  = (AE*) l;
+                              op->rhs  = (AE*) r;
+                              $$ = (Val) op;
+                            }
+
+Number = < [0-9]+ >       - {
+                              AENum* num = malloc(sizeof(AENum));
+                              num->type = AE_NUM;
+                              num->val = atoi(yytext);
+                              $$ = (Val) num;
+                            }
+
+OP     = ( PLUS | MINUS ) - 
+PLUS   = '+'              - { $$ = AE_ADD; }
+MINUS  = '-'              - { $$ = AE_SUB; }
+LBRACE = '{'              -
+RBRACE = '}'              -
+
+- = [ \t]*

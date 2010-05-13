@@ -8,7 +8,10 @@
 #include <stdio.h>
 #include "ae.h"
 
-#define YYSTYPE Val
+#define YYSTYPE Expr
+
+static AE* tree;
+
 
 #ifndef YY_VARIABLE
 #define YY_VARIABLE(T)	static T
@@ -220,8 +223,8 @@ YY_LOCAL(void) yySet(char *text, int count)	{ yyval[count]= yy; }
 
 #define	YYACCEPT	yyAccept(yythunkpos0)
 
-YY_RULE(int) yy_MINUS(); /* 9 */
-YY_RULE(int) yy_PLUS(); /* 8 */
+YY_RULE(int) yy_PLUS(); /* 9 */
+YY_RULE(int) yy_MINUS(); /* 8 */
 YY_RULE(int) yy_RBRACE(); /* 7 */
 YY_RULE(int) yy_OP(); /* 6 */
 YY_RULE(int) yy_LBRACE(); /* 5 */
@@ -247,7 +250,7 @@ YY_ACTION(void) yy_1_Number(char *yytext, int yyleng)
                               AENum* num = malloc(sizeof(AENum));
                               num->type = AE_NUM;
                               num->val = atoi(yytext);
-                              yy = (Val) num;
+                              yy = (Expr) num;
                             ;
 }
 YY_ACTION(void) yy_1_AE(char *yytext, int yyleng)
@@ -261,7 +264,7 @@ YY_ACTION(void) yy_1_AE(char *yytext, int yyleng)
                               op->type = o;
                               op->lhs  = (AE*) l;
                               op->rhs  = (AE*) r;
-                              yy = (Val) op;
+                              yy = (Expr) op;
                             ;
 #undef r
 #undef l
@@ -275,22 +278,22 @@ YY_ACTION(void) yy_1_Expr(char *yytext, int yyleng)
 #undef ae
 }
 
-YY_RULE(int) yy_MINUS()
-{  int yypos0= yypos, yythunkpos0= yythunkpos;
-  yyprintf((stderr, "%s\n", "MINUS"));  if (!yymatchChar('-')) goto l1;  if (!yy__()) goto l1;  yyDo(yy_1_MINUS, yybegin, yyend);
-  yyprintf((stderr, "  ok   %s @ %s\n", "MINUS", yybuf+yypos));
-  return 1;
-  l1:;	  yypos= yypos0; yythunkpos= yythunkpos0;
-  yyprintf((stderr, "  fail %s @ %s\n", "MINUS", yybuf+yypos));
-  return 0;
-}
 YY_RULE(int) yy_PLUS()
 {  int yypos0= yypos, yythunkpos0= yythunkpos;
-  yyprintf((stderr, "%s\n", "PLUS"));  if (!yymatchChar('+')) goto l2;  if (!yy__()) goto l2;  yyDo(yy_1_PLUS, yybegin, yyend);
+  yyprintf((stderr, "%s\n", "PLUS"));  if (!yymatchChar('+')) goto l1;  yyDo(yy_1_PLUS, yybegin, yyend);
   yyprintf((stderr, "  ok   %s @ %s\n", "PLUS", yybuf+yypos));
   return 1;
-  l2:;	  yypos= yypos0; yythunkpos= yythunkpos0;
+  l1:;	  yypos= yypos0; yythunkpos= yythunkpos0;
   yyprintf((stderr, "  fail %s @ %s\n", "PLUS", yybuf+yypos));
+  return 0;
+}
+YY_RULE(int) yy_MINUS()
+{  int yypos0= yypos, yythunkpos0= yythunkpos;
+  yyprintf((stderr, "%s\n", "MINUS"));  if (!yymatchChar('-')) goto l2;  yyDo(yy_1_MINUS, yybegin, yyend);
+  yyprintf((stderr, "  ok   %s @ %s\n", "MINUS", yybuf+yypos));
+  return 1;
+  l2:;	  yypos= yypos0; yythunkpos= yythunkpos0;
+  yyprintf((stderr, "  fail %s @ %s\n", "MINUS", yybuf+yypos));
   return 0;
 }
 YY_RULE(int) yy_RBRACE()
@@ -326,10 +329,14 @@ YY_RULE(int) yy_LBRACE()
 }
 YY_RULE(int) yy_Number()
 {  int yypos0= yypos, yythunkpos0= yythunkpos;
-  yyprintf((stderr, "%s\n", "Number"));  yyText(yybegin, yyend);  if (!(YY_BEGIN)) goto l8;  if (!yymatchClass((unsigned char *)"\000\000\000\000\000\000\377\003\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000")) goto l8;
-  l9:;	
-  {  int yypos10= yypos, yythunkpos10= yythunkpos;  if (!yymatchClass((unsigned char *)"\000\000\000\000\000\000\377\003\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000")) goto l10;  goto l9;
-  l10:;	  yypos= yypos10; yythunkpos= yythunkpos10;
+  yyprintf((stderr, "%s\n", "Number"));  yyText(yybegin, yyend);  if (!(YY_BEGIN)) goto l8;
+  {  int yypos9= yypos, yythunkpos9= yythunkpos;  if (!yy_MINUS()) goto l9;  goto l10;
+  l9:;	  yypos= yypos9; yythunkpos= yythunkpos9;
+  }
+  l10:;	  if (!yymatchClass((unsigned char *)"\000\000\000\000\000\000\377\003\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000")) goto l8;
+  l11:;	
+  {  int yypos12= yypos, yythunkpos12= yythunkpos;  if (!yymatchClass((unsigned char *)"\000\000\000\000\000\000\377\003\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000")) goto l12;  goto l11;
+  l12:;	  yypos= yypos12; yythunkpos= yythunkpos12;
   }  yyText(yybegin, yyend);  if (!(YY_END)) goto l8;  if (!yy__()) goto l8;  yyDo(yy_1_Number, yybegin, yyend);
   yyprintf((stderr, "  ok   %s @ %s\n", "Number", yybuf+yypos));
   return 1;
@@ -340,32 +347,32 @@ YY_RULE(int) yy_Number()
 YY_RULE(int) yy_AE()
 {  int yypos0= yypos, yythunkpos0= yythunkpos;  yyDo(yyPush, 3, 0);
   yyprintf((stderr, "%s\n", "AE"));
-  {  int yypos12= yypos, yythunkpos12= yythunkpos;  if (!yy_Number()) goto l13;  goto l12;
-  l13:;	  yypos= yypos12; yythunkpos= yythunkpos12;  if (!yy_LBRACE()) goto l11;  if (!yy_OP()) goto l11;  yyDo(yySet, -3, 0);  if (!yy_AE()) goto l11;  yyDo(yySet, -2, 0);  if (!yy_AE()) goto l11;  yyDo(yySet, -1, 0);  if (!yy_RBRACE()) goto l11;  yyDo(yy_1_AE, yybegin, yyend);
+  {  int yypos14= yypos, yythunkpos14= yythunkpos;  if (!yy_Number()) goto l15;  goto l14;
+  l15:;	  yypos= yypos14; yythunkpos= yythunkpos14;  if (!yy_LBRACE()) goto l13;  if (!yy_OP()) goto l13;  yyDo(yySet, -3, 0);  if (!yy_AE()) goto l13;  yyDo(yySet, -2, 0);  if (!yy_AE()) goto l13;  yyDo(yySet, -1, 0);  if (!yy_RBRACE()) goto l13;  yyDo(yy_1_AE, yybegin, yyend);
   }
-  l12:;	
+  l14:;	
   yyprintf((stderr, "  ok   %s @ %s\n", "AE", yybuf+yypos));  yyDo(yyPop, 3, 0);
   return 1;
-  l11:;	  yypos= yypos0; yythunkpos= yythunkpos0;
+  l13:;	  yypos= yypos0; yythunkpos= yythunkpos0;
   yyprintf((stderr, "  fail %s @ %s\n", "AE", yybuf+yypos));
   return 0;
 }
 YY_RULE(int) yy__()
 {
   yyprintf((stderr, "%s\n", "_"));
-  l15:;	
-  {  int yypos16= yypos, yythunkpos16= yythunkpos;  if (!yymatchClass((unsigned char *)"\000\002\000\000\001\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000")) goto l16;  goto l15;
-  l16:;	  yypos= yypos16; yythunkpos= yythunkpos16;
+  l17:;	
+  {  int yypos18= yypos, yythunkpos18= yythunkpos;  if (!yymatchClass((unsigned char *)"\000\006\000\000\001\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000")) goto l18;  goto l17;
+  l18:;	  yypos= yypos18; yythunkpos= yythunkpos18;
   }
   yyprintf((stderr, "  ok   %s @ %s\n", "_", yybuf+yypos));
   return 1;
 }
 YY_RULE(int) yy_Expr()
 {  int yypos0= yypos, yythunkpos0= yythunkpos;  yyDo(yyPush, 1, 0);
-  yyprintf((stderr, "%s\n", "Expr"));  if (!yy__()) goto l17;  if (!yy_AE()) goto l17;  yyDo(yySet, -1, 0);  if (!yy__()) goto l17;  yyDo(yy_1_Expr, yybegin, yyend);
+  yyprintf((stderr, "%s\n", "Expr"));  if (!yy__()) goto l19;  if (!yy_AE()) goto l19;  yyDo(yySet, -1, 0);  if (!yy__()) goto l19;  yyDo(yy_1_Expr, yybegin, yyend);
   yyprintf((stderr, "  ok   %s @ %s\n", "Expr", yybuf+yypos));  yyDo(yyPop, 1, 0);
   return 1;
-  l17:;	  yypos= yypos0; yythunkpos= yythunkpos0;
+  l19:;	  yypos= yypos0; yythunkpos= yythunkpos0;
   yyprintf((stderr, "  fail %s @ %s\n", "Expr", yybuf+yypos));
   return 0;
 }
@@ -418,3 +425,12 @@ YY_PARSE(int) YYPARSE(void)
 }
 
 #endif
+
+
+AE* AE_parse() {
+  while (yyparse())
+    ;
+
+  return tree;
+}
+

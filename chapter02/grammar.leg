@@ -2,7 +2,10 @@
 #include <stdio.h>
 #include "ae.h"
 
-#define YYSTYPE Val
+#define YYSTYPE Expr
+
+static AE* tree;
+
 %}
 
 Expr = - ae:AE -            { tree = (AE*) ae; }
@@ -17,20 +20,29 @@ AE = Number
                               op->type = o;
                               op->lhs  = (AE*) l;
                               op->rhs  = (AE*) r;
-                              $$ = (Val) op;
+                              $$ = (Expr) op;
                             }
 
-Number = < [0-9]+ >       - {
+Number = < MINUS? [0-9]+ > -       {
                               AENum* num = malloc(sizeof(AENum));
                               num->type = AE_NUM;
                               num->val = atoi(yytext);
-                              $$ = (Val) num;
+                              $$ = (Expr) num;
                             }
 
 OP     = ( PLUS | MINUS ) - 
-PLUS   = '+'              - { $$ = AE_ADD; }
-MINUS  = '-'              - { $$ = AE_SUB; }
-LBRACE = '{'              -
-RBRACE = '}'              -
+PLUS   = '+'                { $$ = AE_ADD; }
+MINUS  = '-'                { $$ = AE_SUB; }
+LBRACE = '{' -
+RBRACE = '}' -
 
-- = [ \t]*
+- = [ \t\n]*
+
+%%
+
+AE* AE_parse() {
+  while (yyparse())
+    ;
+
+  return tree;
+}

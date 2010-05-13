@@ -2,56 +2,64 @@
 #include <stdio.h>
 #include "ae.h"
 
-int calc(AE* node) {
+int AE_calc(AE* node) {
   switch (node->type) {
     case AE_NUM:
       return AENUM(node)->val;
     case AE_ADD:
-      return calc(AEOP(node)->lhs) + calc(AEOP(node)->rhs);
+      return AE_calc(AEOP(node)->lhs) + AE_calc(AEOP(node)->rhs);
     case AE_SUB:
-      return calc(AEOP(node)->lhs) - calc(AEOP(node)->rhs);
+      return AE_calc(AEOP(node)->lhs) - AE_calc(AEOP(node)->rhs);
   }
   return -1;
 }
 
-void free_ae(AE* node) {
+void AE_free(AE* node) {
   switch (node->type) {
     case AE_NUM:
       free(node);
       break;
     case AE_ADD:
     case AE_SUB:
-      free_ae(AEOP(node)->lhs);
-      free_ae(AEOP(node)->rhs);
+      AE_free(AEOP(node)->lhs);
+      AE_free(AEOP(node)->rhs);
       free(node);
       break;
   }
 }
 
-char* ae_to_str(AE* node) {
+char* AE_print(AE* node) {
   char* buf = malloc(sizeof(char) * 512);
+  char* op;
+  char* l;
+  char* r;
 
   switch (node->type) {
     case AE_NUM:
       sprintf(buf, "(num %d)", AENUM(node)->val);
       break;
-    case AE_ADD:
-      sprintf(buf, "(add %s %s)", ae_to_str(AEOP(node)->lhs), ae_to_str(AEOP(node)->rhs));
-      break;
-    case AE_SUB:
-      sprintf(buf, "(sub %s %s)", ae_to_str(AEOP(node)->lhs), ae_to_str(AEOP(node)->rhs));
+    default:
+      op = node->type == AE_ADD ? "add" : "sub";
+      l  = AE_print(AEOP(node)->lhs);
+      r  = AE_print(AEOP(node)->rhs);
+      sprintf(buf, "(%s %s %s)", op, l, r);
+      free(l);
+      free(r);
       break;
   }
   return buf;
 }
 
+AE* AE_parse();
+
 int main() {
-  while (yyparse())
-    ;
+  AE* tree = AE_parse();
+  char* out = AE_print(tree);
 
-  printf("%d\n", calc(tree));
-  printf("%s\n", ae_to_str(tree));
-  free_ae(tree);
+  printf("%d\n", AE_calc(tree));
+  printf("%s\n", out);
 
+  AE_free(tree);
+  free(out);
   return 0;
 }

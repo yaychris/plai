@@ -4,17 +4,16 @@
 #define AEOP(x) ((AEOp*) x)
 #define AENUM(x) ((AENum*) x)
 
+typedef unsigned long Expr;
 
-typedef unsigned long Val;
-
-// tree types
-typedef enum AEType {
+// node types
+typedef enum {
   AE_NUM,
   AE_ADD,
   AE_SUB
 } AEType;
 
-// base type
+// base node
 typedef struct {
   AEType type;
 } AE;
@@ -32,8 +31,13 @@ typedef struct {
   AE*    rhs;
 } AEOp;
 
-// global tree root
-AE* tree;
 
+AE* AE_parse();
+
+int AE_calc(AE* node);
+
+char* AE_print(AE* node);
+
+void AE_free(AE* node);
 
 #endif

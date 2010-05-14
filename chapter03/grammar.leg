@@ -1,0 +1,77 @@
+%{
+#include "wae.h"
+
+#define YYSTYPE Expr
+
+static WAE* tree;
+%}
+
+Expr = - ae:WAE -           { tree = (WAE*) ae; }
+
+WAE    = Number
+       | Id
+       | With
+       | Operation
+
+Operation = LBRACE
+            o:OP
+            l:WAE
+            r:WAE
+            RBRACE         {
+                              WAEOp* op = malloc(sizeof(WAEOp));
+                              op->type = o;
+                              op->lhs  = (WAE*) l;
+                              op->rhs  = (WAE*) r;
+                              $$ = (Expr) op;
+                            }
+
+With   = LBRACE
+         WITH -
+         LBRACE
+         i:Id -
+         e:WAE
+         RBRACE
+         b:WAE
+         RBRACE             {
+                              WAEWith* with = malloc(sizeof(WAEWith));
+                              with->type = WAE_WITH;
+                              with->id   = (WAEId*) i;
+                              with->expr = (WAE*) e;
+                              with->body = (WAE*) b;
+                              $$ = (Expr) with;
+                            }
+
+Id = < [-_A-Za-z0-9?]+ >    {
+                              WAEId* id = malloc(sizeof(WAEId));
+                              char* buf = malloc(yyleng + 1);
+                              strcpy(buf, yytext);
+                              id->type = WAE_ID;
+                              id->name = buf;
+                              $$ = (Expr) id;
+                            }
+
+Number = < MINUS? [0-9]+ > -  {
+                                WAENum* num = malloc(sizeof(WAENum));
+                                num->type = WAE_NUM;
+                                num->val = atoi(yytext);
+                                $$ = (Expr) num;
+                              }
+
+OP     = PLUS -             { $$ = WAE_ADD; }
+       | MINUS -            { $$ = WAE_SUB; }
+WITH   = 'with'
+PLUS   = '+'
+MINUS  = '-'
+LBRACE = '{' -
+RBRACE = '}' -
+
+- = [ \t\n]*
+
+%%
+
+WAE* WAE_parse() {
+  while (yyparse())
+    ;
+
+  return tree;
+}

@@ -3,12 +3,15 @@
 
 int main() {
   WAE* tree = WAE_parse();
-  char* out = WAE_print(tree);
 
-  //printf("%d\n", WAE_calc(tree));
-  printf("%s\n", out);
+  if (tree != NULL) {
+    char* out = WAE_print(tree);
 
-  WAE_free(tree);
-  free(out);
+    //printf("%d\n", WAE_calc(tree));
+    printf("%s\n", out);
+
+    WAE_free(tree);
+    free(out);
+  }
   return 0;
 }

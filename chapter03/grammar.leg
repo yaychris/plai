@@ -13,11 +13,11 @@ WAE    = Number
        | With
        | Operation
 
-Operation = LBRACE
-            o:OP
-            l:WAE
-            r:WAE
-            RBRACE         {
+Operation = LBRACE -
+            o:OP SPACE
+            l:WAE SPACE
+            r:WAE -
+            RBRACE -       {
                               WAEOp* op = malloc(sizeof(WAEOp));
                               op->type = o;
                               op->lhs  = (WAE*) l;
@@ -25,14 +25,14 @@ Operation = LBRACE
                               $$ = (Expr) op;
                             }
 
-With   = LBRACE
-         WITH -
-         LBRACE
-         i:Id -
-         e:WAE
-         RBRACE
-         b:WAE
-         RBRACE             {
+With   = LBRACE -
+         WITH SPACE
+         LBRACE -
+         i:Id SPACE
+         e:WAE -
+         RBRACE SPACE
+         b:WAE -
+         RBRACE -         {
                               WAEWith* with = malloc(sizeof(WAEWith));
                               with->type = WAE_WITH;
                               with->id   = (WAEId*) i;
@@ -50,28 +50,34 @@ Id = < [-_A-Za-z0-9?]+ >    {
                               $$ = (Expr) id;
                             }
 
-Number = < MINUS? [0-9]+ > -  {
-                                WAENum* num = malloc(sizeof(WAENum));
-                                num->type = WAE_NUM;
-                                num->val = atoi(yytext);
-                                $$ = (Expr) num;
-                              }
+Number = < MINUS? [0-9]+ >  {
+                              WAENum* num = malloc(sizeof(WAENum));
+                              num->type = WAE_NUM;
+                              num->val = atoi(yytext);
+                              $$ = (Expr) num;
+                            }
 
-OP     = PLUS -             { $$ = WAE_ADD; }
-       | MINUS -            { $$ = WAE_SUB; }
+OP     = PLUS               { $$ = WAE_ADD; }
+       | MINUS              { $$ = WAE_SUB; }
 WITH   = 'with'
 PLUS   = '+'
 MINUS  = '-'
-LBRACE = '{' -
-RBRACE = '}' -
+LBRACE = '{'
+RBRACE = '}'
 
-- = [ \t\n]*
+-      = WHITE*
+SPACE  = WHITE+
+WHITE  = ' ' | '\t' | EOL
+EOL    = '\r\n' | '\n' | '\r'
+
 
 %%
 
 WAE* WAE_parse() {
-  while (yyparse())
-    ;
-
-  return tree;
+  if (!yyparse()) {
+    printf("parse error!\n");
+    return NULL;
+  } else {
+    return tree;
+  }
 }

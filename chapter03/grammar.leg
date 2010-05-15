@@ -4,6 +4,8 @@
 #define YYSTYPE Expr
 
 static WAE* tree;
+
+void yyerror(char* message);
 %}
 
 Expr = - ae:WAE -           { tree = (WAE*) ae; }
@@ -48,9 +50,15 @@ EOL    = '\r\n' | '\n' | '\r'
 
 %%
 
+void yyerror(char* message) {
+  fprintf(stderr, "%s", message);
+  fprintf(stderr, "\n");
+  exit(1);
+}
+
 WAE* WAE_parse() {
   if (!yyparse()) {
-    printf("parse error!\n");
+    yyerror("syntax error");
     return NULL;
   }
 

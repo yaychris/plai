@@ -11,6 +11,8 @@
 
 static WAE* tree;
 
+void yyerror(char* message);
+
 #ifndef YY_VARIABLE
 #define YY_VARIABLE(T)	static T
 #endif
@@ -520,9 +522,15 @@ YY_PARSE(int) YYPARSE(void)
 #endif
 
 
+void yyerror(char* message) {
+  fprintf(stderr, "%s", message);
+  fprintf(stderr, "\n");
+  exit(1);
+}
+
 WAE* WAE_parse() {
   if (!yyparse()) {
-    printf("parse error!\n");
+    yyerror("syntax error");
     return NULL;
   }
 

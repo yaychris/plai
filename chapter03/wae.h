@@ -53,12 +53,9 @@ typedef struct {
 } WAEWith;
 
 
-WAE* WAE_parse();
-
-int WAE_calc(WAE* self);
-
+WAE*  WAE_parse();
+int   WAE_calc(WAE* self);
 char* WAE_print(WAE* self);
-
-void WAE_free(WAE* self);
+void  WAE_free(WAE* self);
 
 #endif

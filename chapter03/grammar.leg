@@ -43,10 +43,8 @@ With   = LBRACE -
 
 Id = < [-_A-Za-z0-9?]+ >    {
                               WAEId* id = malloc(sizeof(WAEId));
-                              char* buf = malloc(yyleng + 1);
-                              strcpy(buf, yytext);
                               id->type = WAE_ID;
-                              id->name = buf;
+                              id->name = strdup(yytext);
                               $$ = (Expr) id;
                             }
 
@@ -77,7 +75,7 @@ WAE* WAE_parse() {
   if (!yyparse()) {
     printf("parse error!\n");
     return NULL;
-  } else {
-    return tree;
   }
+
+  return tree;
 }

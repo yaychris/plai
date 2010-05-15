@@ -263,10 +263,8 @@ YY_ACTION(void) yy_1_Id(char *yytext, int yyleng)
   yyprintf((stderr, "do yy_1_Id\n"));
   
                               WAEId* id = malloc(sizeof(WAEId));
-                              char* buf = malloc(yyleng + 1);
-                              strcpy(buf, yytext);
                               id->type = WAE_ID;
-                              id->name = buf;
+                              id->name = strdup(yytext);
                               yy = (Expr) id;
                             ;
 }
@@ -549,8 +547,8 @@ WAE* WAE_parse() {
   if (!yyparse()) {
     printf("parse error!\n");
     return NULL;
-  } else {
-    return tree;
   }
+
+  return tree;
 }
 

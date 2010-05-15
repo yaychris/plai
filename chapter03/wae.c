@@ -54,8 +54,7 @@ char* WAE_print(WAE* self) {
       sprintf(buf, "(id %s)", WAEID(self)->name);
       break;
     case WAE_WITH:
-      sprintf(buf,
-        "(with %s %s %s)",
+      sprintf(buf, "(with %s %s %s)",
         WAE_print((WAE*) WAEWITH(self)->id),
         WAE_print(WAEWITH(self)->expr),
         WAE_print(WAEWITH(self)->body)
@@ -76,13 +75,20 @@ char* WAE_print(WAE* self) {
 void WAE_free(WAE* self) {
   switch (self->type) {
     case WAE_NUM:
-      free(self);
+      break;
+    case WAE_ID:
+      free(WAEID(self)->name);
+      break;
+    case WAE_WITH:
+      free(WAEWITH(self)->id);
+      free(WAEWITH(self)->expr);
+      free(WAEWITH(self)->body);
       break;
     case WAE_ADD:
     case WAE_SUB:
       WAE_free(WAEOP(self)->lhs);
       WAE_free(WAEOP(self)->rhs);
-      free(self);
       break;
   }
+  free(self);
 }

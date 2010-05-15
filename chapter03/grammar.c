@@ -251,22 +251,12 @@ YY_ACTION(void) yy_1_OP(char *yytext, int yyleng)
 YY_ACTION(void) yy_1_Number(char *yytext, int yyleng)
 {
   yyprintf((stderr, "do yy_1_Number\n"));
-  
-                              WAENum* num = malloc(sizeof(WAENum));
-                              num->type = WAE_NUM;
-                              num->val = atoi(yytext);
-                              yy = (Expr) num;
-                            ;
+   yy = (Expr) WAENum_new(atoi(yytext)); ;
 }
 YY_ACTION(void) yy_1_Id(char *yytext, int yyleng)
 {
   yyprintf((stderr, "do yy_1_Id\n"));
-  
-                              WAEId* id = malloc(sizeof(WAEId));
-                              id->type = WAE_ID;
-                              id->name = strdup(yytext);
-                              yy = (Expr) id;
-                            ;
+   yy = (Expr) WAEId_new(strdup(yytext)); ;
 }
 YY_ACTION(void) yy_1_With(char *yytext, int yyleng)
 {
@@ -274,14 +264,7 @@ YY_ACTION(void) yy_1_With(char *yytext, int yyleng)
 #define e yyval[-2]
 #define i yyval[-3]
   yyprintf((stderr, "do yy_1_With\n"));
-  
-                              WAEWith* with = malloc(sizeof(WAEWith));
-                              with->type = WAE_WITH;
-                              with->id   = (WAEId*) i;
-                              with->expr = (WAE*) e;
-                              with->body = (WAE*) b;
-                              yy = (Expr) with;
-                            ;
+   yy = (Expr) WAEWith_new((WAEId*) i, (WAE*) e, (WAE*) b); ;
 #undef b
 #undef e
 #undef i
@@ -292,13 +275,7 @@ YY_ACTION(void) yy_1_Operation(char *yytext, int yyleng)
 #define l yyval[-2]
 #define o yyval[-3]
   yyprintf((stderr, "do yy_1_Operation\n"));
-  
-                              WAEOp* op = malloc(sizeof(WAEOp));
-                              op->type = o;
-                              op->lhs  = (WAE*) l;
-                              op->rhs  = (WAE*) r;
-                              yy = (Expr) op;
-                            ;
+   yy = (Expr) WAEOp_new(o, (WAE*) l, (WAE*) r); ;
 #undef r
 #undef l
 #undef o

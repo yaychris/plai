@@ -1,5 +1,36 @@
 #include "wae.h"
 
+WAENum* WAENum_new(int val) {
+  WAENum* num = malloc(sizeof(WAENum));
+  num->type = WAE_NUM;
+  num->val  = val;
+  return num;
+}
+
+WAEOp* WAEOp_new(unsigned short type, WAE* l, WAE* r) {
+  WAEOp* op = malloc(sizeof(WAEOp));
+  op->type = type;
+  op->lhs  = l;
+  op->rhs  = r;
+  return op;
+}
+
+WAEId* WAEId_new(char* name) {
+  WAEId* id = malloc(sizeof(WAEId));
+  id->type = WAE_ID;
+  id->name = name;
+  return id;
+}
+
+WAEWith* WAEWith_new(WAEId* id, WAE* expr, WAE* body) {
+  WAEWith* with = malloc(sizeof(WAEWith));
+  with->type = WAE_WITH;
+  with->id   = id;
+  with->expr = expr;
+  with->body = body;
+  return with;
+}
+
 int WAE_calc(WAE* self) {
   switch (self->type) {
     case WAE_NUM:

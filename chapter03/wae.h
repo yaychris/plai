@@ -53,6 +53,11 @@ typedef struct {
 } WAEWith;
 
 
+inline WAENum*  WAENum_new(int val);
+inline WAEOp*   WAEOp_new(unsigned short type, WAE* l, WAE* r);
+inline WAEId*   WAEId_new(char* name);
+inline WAEWith* WAEWith_new(WAEId* id, WAE* expr, WAE* body);
+
 WAE*  WAE_parse();
 int   WAE_calc(WAE* self);
 char* WAE_print(WAE* self);

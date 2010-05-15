@@ -17,13 +17,7 @@ Operation = LBRACE -
             o:OP SPACE
             l:WAE SPACE
             r:WAE -
-            RBRACE -       {
-                              WAEOp* op = malloc(sizeof(WAEOp));
-                              op->type = o;
-                              op->lhs  = (WAE*) l;
-                              op->rhs  = (WAE*) r;
-                              $$ = (Expr) op;
-                            }
+            RBRACE -        { $$ = (Expr) WAEOp_new(o, (WAE*) l, (WAE*) r); }
 
 With   = LBRACE -
          WITH SPACE
@@ -32,28 +26,11 @@ With   = LBRACE -
          e:WAE -
          RBRACE SPACE
          b:WAE -
-         RBRACE -         {
-                              WAEWith* with = malloc(sizeof(WAEWith));
-                              with->type = WAE_WITH;
-                              with->id   = (WAEId*) i;
-                              with->expr = (WAE*) e;
-                              with->body = (WAE*) b;
-                              $$ = (Expr) with;
-                            }
+         RBRACE -           { $$ = (Expr) WAEWith_new((WAEId*) i, (WAE*) e, (WAE*) b); }
 
-Id = < [-_A-Za-z0-9?]+ >    {
-                              WAEId* id = malloc(sizeof(WAEId));
-                              id->type = WAE_ID;
-                              id->name = strdup(yytext);
-                              $$ = (Expr) id;
-                            }
+Id = < [-_A-Za-z0-9?]+ >    { $$ = (Expr) WAEId_new(strdup(yytext)); }
 
-Number = < MINUS? [0-9]+ >  {
-                              WAENum* num = malloc(sizeof(WAENum));
-                              num->type = WAE_NUM;
-                              num->val = atoi(yytext);
-                              $$ = (Expr) num;
-                            }
+Number = < MINUS? [0-9]+ >  { $$ = (Expr) WAENum_new(atoi(yytext)); }
 
 OP     = PLUS               { $$ = WAE_ADD; }
        | MINUS              { $$ = WAE_SUB; }

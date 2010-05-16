@@ -3,12 +3,12 @@
 
 #define YYSTYPE Expr
 
-static WAE* tree;
+static WAE *tree;
 
-void yyerror(char* message);
+void yyerror(char *message);
 %}
 
-Expr = - ae:WAE -           { tree = (WAE*) ae; }
+Expr = - ae:WAE -           { tree = (WAE *) ae; }
 
 WAE    = Number
        | Id
@@ -19,7 +19,7 @@ Operation = LBRACE -
             o:OP SPACE
             l:WAE SPACE
             r:WAE -
-            RBRACE -        { $$ = (Expr) WAEOp_new(o, (WAE*) l, (WAE*) r); }
+            RBRACE -        { $$ = (Expr) WAEOp_new(o, (WAE *) l, (WAE *) r); }
 
 With   = LBRACE -
          WITH SPACE
@@ -28,7 +28,7 @@ With   = LBRACE -
          e:WAE -
          RBRACE SPACE
          b:WAE -
-         RBRACE -           { $$ = (Expr) WAEWith_new((WAEId*) i, (WAE*) e, (WAE*) b); }
+         RBRACE -           { $$ = (Expr) WAEWith_new((WAEId *) i, (WAE *) e, (WAE *) b); }
 
 Id = < [-_A-Za-z0-9?]+ >    { $$ = (Expr) WAEId_new(strdup(yytext)); }
 
@@ -50,13 +50,13 @@ EOL    = '\r\n' | '\n' | '\r'
 
 %%
 
-void yyerror(char* message) {
+void yyerror(char *message) {
   fprintf(stderr, "%s", message);
   fprintf(stderr, "\n");
   exit(1);
 }
 
-WAE* WAE_parse() {
+WAE *WAE_parse() {
   if (!yyparse()) {
     yyerror("syntax error");
     return NULL;

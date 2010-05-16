@@ -9,9 +9,9 @@
 
 #define YYSTYPE Expr
 
-static WAE* tree;
+static WAE *tree;
 
-void yyerror(char* message);
+void yyerror(char *message);
 
 #ifndef YY_VARIABLE
 #define YY_VARIABLE(T)	static T
@@ -266,7 +266,7 @@ YY_ACTION(void) yy_1_With(char *yytext, int yyleng)
 #define e yyval[-2]
 #define i yyval[-3]
   yyprintf((stderr, "do yy_1_With\n"));
-   yy = (Expr) WAEWith_new((WAEId*) i, (WAE*) e, (WAE*) b); ;
+   yy = (Expr) WAEWith_new((WAEId *) i, (WAE *) e, (WAE *) b); ;
 #undef b
 #undef e
 #undef i
@@ -277,7 +277,7 @@ YY_ACTION(void) yy_1_Operation(char *yytext, int yyleng)
 #define l yyval[-2]
 #define o yyval[-3]
   yyprintf((stderr, "do yy_1_Operation\n"));
-   yy = (Expr) WAEOp_new(o, (WAE*) l, (WAE*) r); ;
+   yy = (Expr) WAEOp_new(o, (WAE *) l, (WAE *) r); ;
 #undef r
 #undef l
 #undef o
@@ -286,7 +286,7 @@ YY_ACTION(void) yy_1_Expr(char *yytext, int yyleng)
 {
 #define ae yyval[-1]
   yyprintf((stderr, "do yy_1_Expr\n"));
-   tree = (WAE*) ae; ;
+   tree = (WAE *) ae; ;
 #undef ae
 }
 
@@ -522,13 +522,13 @@ YY_PARSE(int) YYPARSE(void)
 #endif
 
 
-void yyerror(char* message) {
+void yyerror(char *message) {
   fprintf(stderr, "%s", message);
   fprintf(stderr, "\n");
   exit(1);
 }
 
-WAE* WAE_parse() {
+WAE *WAE_parse() {
   if (!yyparse()) {
     yyerror("syntax error");
     return NULL;

@@ -1,0 +1,70 @@
+%{
+#include "f1wae.h"
+
+#define YYSTYPE Expr
+
+static F1WAE *tree;
+
+void yyerror(char*);
+%}
+
+Expr = - ae:F1WAE -           { tree = (F1WAE *) ae; }
+
+F1WAE  = Number
+       | Id
+       | With
+       | Addition
+       | Application
+
+Addition = LBRACE -
+           PLUS SPACE
+           l:F1WAE SPACE
+           r:F1WAE -
+           RBRACE          { $$ = (Expr) F1WAEAdd_new((F1WAE *) l, (F1WAE *) r); }
+
+Application = LBRACE -
+              i:Id SPACE
+              e:F1WAE -
+              RBRACE        { $$ = (Expr) F1WAEApp_new((F1WAEId *) i, (F1WAE *) e); }
+
+With   = LBRACE -
+         WITH SPACE
+         LBRACE -
+         i:Id SPACE
+         e:F1WAE -
+         RBRACE SPACE
+         b:F1WAE -
+         RBRACE             { $$ = (Expr) F1WAEWith_new((F1WAEId *) i, (F1WAE *) e, (F1WAE *) b); }
+
+Id = < [-_A-Za-z0-9?]+ >    { $$ = (Expr) F1WAEId_new(strdup(yytext)); }
+
+Number = < MINUS? [0-9]+ >  { $$ = (Expr) F1WAENum_new(atoi(yytext)); }
+
+WITH   = 'with'
+PLUS   = '+'
+MINUS  = '-'
+LBRACE = '{'
+RBRACE = '}'
+
+-      = WHITE*
+SPACE  = WHITE+
+WHITE  = ' ' | '\t' | EOL
+EOL    = '\r\n' | '\n' | '\r'
+
+
+%%
+
+void yyerror(char *message) {
+  fprintf(stderr, "%s", message);
+  fprintf(stderr, "\n");
+  exit(1);
+}
+
+F1WAE *F1WAE_parse() {
+  if (!yyparse()) {
+    yyerror("syntax error");
+    return NULL;
+  }
+
+  return tree;
+}

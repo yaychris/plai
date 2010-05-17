@@ -47,6 +47,8 @@ WAE *WAE_subst(WAE *expr, char *name, WAENum *num) {
       return (WAE *) op;
     case WAE_WITH:
       with = WAEWITH(expr);
+      with->expr = WAE_subst(with->expr, name, num);
+
       if (strcmp(with->id->name, name) == 0) {
         // new binding instance for this name, don't substitute
         return expr;
@@ -88,7 +90,6 @@ int WAE_calc(WAE *self) {
     case WAE_WITH:
       with = WAEWITH(self);
       num  = WAENum_new(WAE_calc(with->expr));
-
       with->body = WAE_subst(with->body, with->id->name, num);
       return WAE_calc(with->body);
     case WAE_ID:
@@ -138,8 +139,8 @@ void WAE_free(WAE *self) {
       break;
     case WAE_WITH:
       free(WAEWITH(self)->id);
-      free(WAEWITH(self)->expr);
-      free(WAEWITH(self)->body);
+      WAE_free(WAEWITH(self)->expr);
+      WAE_free(WAEWITH(self)->body);
       break;
     case WAE_ADD:
     case WAE_SUB:

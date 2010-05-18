@@ -6,6 +6,18 @@
 static F1WAE *tree;
 
 void yyerror(char*);
+
+static char *charbuf;
+
+#define YY_INPUT(buf, result, max_size) { \
+  int yyc; \
+  if (charbuf && *charbuf != '\0') \
+    yyc = *charbuf++; \
+  else \
+    yyc = EOF; \
+  result = (EOF == yyc) ? 0 : (*(buf) = yyc, 1); \
+}
+
 %}
 
 Expr = - ae:F1WAE -           { tree = (F1WAE *) ae; }
@@ -36,7 +48,7 @@ With   = LBRACE -
          b:F1WAE -
          RBRACE             { $$ = (Expr) F1WAEWith_new((F1WAEId *) i, (F1WAE *) e, (F1WAE *) b); }
 
-Id = < [-_A-Za-z0-9?]+ >    { $$ = (Expr) F1WAEId_new(strdup(yytext)); }
+Id = < [-_A-Za-z0-9?]+ >    { $$ = (Expr) F1WAEId_new(yytext); }
 
 Number = < MINUS? [0-9]+ >  { $$ = (Expr) F1WAENum_new(atoi(yytext)); }
 
@@ -60,7 +72,9 @@ void yyerror(char *message) {
   exit(1);
 }
 
-F1WAE *F1WAE_parse() {
+F1WAE *F1WAE_parse(char *code) {
+  charbuf = code;
+
   if (!yyparse()) {
     yyerror("syntax error");
     return NULL;

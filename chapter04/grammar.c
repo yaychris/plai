@@ -13,6 +13,18 @@ static F1WAE *tree;
 
 void yyerror(char*);
 
+static char *charbuf;
+
+#define YY_INPUT(buf, result, max_size) { \
+  int yyc; \
+  if (charbuf && *charbuf != '\0') \
+    yyc = *charbuf++; \
+  else \
+    yyc = EOF; \
+  result = (EOF == yyc) ? 0 : (*(buf) = yyc, 1); \
+}
+
+
 #ifndef YY_VARIABLE
 #define YY_VARIABLE(T)	static T
 #endif
@@ -248,7 +260,7 @@ YY_ACTION(void) yy_1_Number(char *yytext, int yyleng)
 YY_ACTION(void) yy_1_Id(char *yytext, int yyleng)
 {
   yyprintf((stderr, "do yy_1_Id\n"));
-   yy = (Expr) F1WAEId_new(strdup(yytext)); ;
+   yy = (Expr) F1WAEId_new(yytext); ;
 }
 YY_ACTION(void) yy_1_With(char *yytext, int yyleng)
 {
@@ -522,7 +534,9 @@ void yyerror(char *message) {
   exit(1);
 }
 
-F1WAE *F1WAE_parse() {
+F1WAE *F1WAE_parse(char *code) {
+  charbuf = code;
+
   if (!yyparse()) {
     yyerror("syntax error");
     return NULL;

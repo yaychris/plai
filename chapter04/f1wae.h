@@ -67,7 +67,7 @@ inline F1WAEId   *F1WAEId_new(char*);
 inline F1WAEWith *F1WAEWith_new(F1WAEId*, F1WAE*, F1WAE*);
 inline F1WAEApp  *F1WAEApp_new(F1WAEId*, F1WAE*);
 
-F1WAE  *F1WAE_parse();
+F1WAE  *F1WAE_parse(char*);
 F1WAE  *F1WAE_subst(F1WAE*, char*, F1WAENum*);
 int     F1WAE_calc(F1WAE*);
 char   *F1WAE_print(F1WAE*);

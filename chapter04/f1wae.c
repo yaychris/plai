@@ -92,7 +92,7 @@ F1WAE *F1WAE_subst(F1WAE *expr, char *name, F1WAENum *num) {
       id = F1WAEID(expr);
       if (strcmp(name, id->name) == 0) {
         // matching identifier, substitute with new num
-        free(id);
+        F1WAE_free((F1WAE *) id);
         return (F1WAE *) F1WAENum_new(num->val);
       } else {
         // no match

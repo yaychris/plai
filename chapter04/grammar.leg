@@ -20,7 +20,7 @@ static char *charbuf;
 
 %}
 
-Expr = - ae:F1WAE -           { tree = (F1WAE *) ae; }
+Expr = - ae:F1WAE -         { tree = (F1WAE *) ae; }
 
 F1WAE  = Number
        | Id
@@ -32,7 +32,7 @@ Addition = LBRACE -
            PLUS SPACE
            l:F1WAE SPACE
            r:F1WAE -
-           RBRACE          { $$ = (Expr) F1WAEAdd_new((F1WAE *) l, (F1WAE *) r); }
+           RBRACE           { $$ = (Expr) F1WAEAdd_new((F1WAE *) l, (F1WAE *) r); }
 
 Application = LBRACE -
               i:Id SPACE

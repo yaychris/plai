@@ -1,5 +1,6 @@
 *~
 *.o
+*.dSYM
 a.out
 tools/peg/peg
 tools/peg/leg

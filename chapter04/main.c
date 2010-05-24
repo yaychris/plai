@@ -24,22 +24,22 @@ int main(int argc, char* argv[]) {
   }
 
   if (tree != NULL) {
-    //char *out = F1WAE_print(tree);
-    //char *out = malloc(512 * sizeof(char));
-    //F1WAEFun *fun = F1WAEFun_new(strdup("double"), strdup("x"), tree);
-    //FunList *list = FunList_new();
+    char *out = F1WAE_print(tree);
 
-    //FunList_addFun(list, fun);
+    F1WAEFun *fun = F1WAEFun_new("double", "x", F1WAE_parse("{+ x x}"));
+    FunList *list = FunList_new();
+
+    FunList_addFun(list, fun);
 
     printf(
-      "%s\n",
-      F1WAE_print(F1WAE_subst(tree, "x", F1WAENum_new(5)))
+      "%s\n%d\n",
+      out,
+      F1WAE_interp(tree, list)
     );
-    //printf("%s\n", out);
-    //printf("%d\n", F1WAE_calc(tree));
 
-    //FunList_free(list);
-    //free(out);
+    F1WAE_free(tree);
+    FunList_free(list);
+    free(out);
   }
   return 0;
 }

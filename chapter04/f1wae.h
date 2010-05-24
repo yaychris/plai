@@ -13,6 +13,7 @@
 #define F1WAEFUN(x)  ((F1WAEFun *) (x))
 
 typedef unsigned long Expr;
+typedef struct FunList FunList;
 
 // node types
 typedef enum {
@@ -82,20 +83,20 @@ F1WAE *F1WAE_clone(F1WAE*);
 
 F1WAE   *F1WAE_parse(char*);
 F1WAE   *F1WAE_subst(F1WAE*, char*, F1WAENum*);
-int     F1WAE_interp(F1WAE*);
+int     F1WAE_interp(F1WAE*, FunList*);
 char    *F1WAE_print(F1WAE*);
 void    F1WAE_free(F1WAE*);
 
 
 // function definitions linked list
-typedef struct FunList FunList;
 struct FunList {
-  F1WAEFun *fun;
-  FunList  *next;
+  F1WAEFun       *fun;
+  struct FunList *next;
 };
 
-FunList *FunList_new();
-FunList *FunList_addFun(FunList*, F1WAEFun*);
-void    FunList_free(FunList*);
+FunList  *FunList_new();
+FunList  *FunList_addFun(FunList*, F1WAEFun*);
+F1WAEFun *FunList_lookup(FunList*, char*);
+void      FunList_free(FunList*);
 
 #endif

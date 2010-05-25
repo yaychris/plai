@@ -1,0 +1,99 @@
+%{
+#include "fae.h"
+
+#define YYSTYPE Expr
+
+static FAE *tree;
+
+void yyerror(char*);
+
+static char *charbuf;
+
+#define YY_INPUT(buf, result, max_size) { \
+  int yyc; \
+  if (charbuf && *charbuf != '\0') \
+    yyc = *charbuf++; \
+  else \
+    yyc = EOF; \
+  result = (EOF == yyc) ? 0 : (*(buf) = yyc, 1); \
+}
+
+%}
+
+Expr = - ae:FAE -           { tree = (FAE *) ae; }
+
+FAE = Number
+    | Id
+    | With
+    | Addition
+    | Application
+    | Function
+
+Number = < MINUS? [0-9]+ >  { $$ = (Expr) FAENum_new(atoi(yytext)); }
+
+Id = < [-_A-Za-z0-9?]+ >    { $$ = (Expr) FAEId_new(yytext); }
+
+With = LBRACE -
+       WITH SPACE
+       LBRACE -
+       i:Id SPACE
+       e:FAE -
+       RBRACE SPACE
+       b:FAE -
+       RBRACE               {
+                              $$ = (Expr) FAEApp_new(
+                                (FAE *) FAEFun_new((FAEId *) i, (FAE *) b),
+                                (FAE *) e
+                              );
+                            }
+
+Addition = LBRACE -
+           PLUS SPACE
+           l:FAE SPACE
+           r:FAE -
+           RBRACE           { $$ = (Expr) FAEAdd_new((FAE *) l, (FAE *) r); }
+
+Application = LBRACE -
+              i:FAE SPACE
+              e:FAE -
+              RBRACE        { $$ = (Expr) FAEApp_new((FAE *) i, (FAE *) e); }
+
+Function = LBRACE -
+           FUN SPACE
+           LBRACE
+           i:Id -
+           RBRACE SPACE
+           e:FAE -
+           RBRACE           { $$ = (Expr) FAEFun_new((FAEId *) i, (FAE *) e); }
+
+WITH   = 'with'
+FUN    = 'fun'
+PLUS   = '+'
+MINUS  = '-'
+LBRACE = '{'
+RBRACE = '}'
+
+-      = WHITE*
+SPACE  = WHITE+
+WHITE  = ' ' | '\t' | EOL
+EOL    = '\r\n' | '\n' | '\r'
+
+
+%%
+
+void yyerror(char *message) {
+  fprintf(stderr, "%s", message);
+  fprintf(stderr, "\n");
+  exit(1);
+}
+
+FAE *FAE_parse(char *code) {
+  charbuf = code;
+
+  if (!yyparse()) {
+    yyerror("syntax error");
+    return NULL;
+  }
+
+  return tree;
+}

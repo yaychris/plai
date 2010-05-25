@@ -51,47 +51,6 @@ F1WAEFun *F1WAEFun_new(char *name, char *arg, F1WAE *body) {
   return fun;
 }
 
-F1WAE *F1WAE_clone(F1WAE *self) {
-  switch (self->type) {
-    case F1WAE_NUM:
-      return (F1WAE *) F1WAENum_new(F1WAENUM(self)->val);
-
-    case F1WAE_ADD:
-      return (F1WAE *) F1WAEAdd_new(
-        F1WAE_clone(F1WAEADD(self)->lhs),
-        F1WAE_clone(F1WAEADD(self)->rhs)
-      );
-
-    case F1WAE_WITH:
-      return (F1WAE *) F1WAEWith_new(
-        (F1WAEId *) F1WAE_clone((F1WAE *) F1WAEWITH(self)->id),
-        F1WAE_clone(F1WAEWITH(self)->expr),
-        F1WAE_clone(F1WAEWITH(self)->body)
-      );
-
-    case F1WAE_APP:
-      return (F1WAE *) F1WAEApp_new(
-        (F1WAEId *) F1WAE_clone((F1WAE *) F1WAEAPP(self)->id),
-        F1WAE_clone(F1WAEAPP(self)->expr)
-      );
-
-    case F1WAE_ID:
-      return (F1WAE *) F1WAEId_new(F1WAEID(self)->name);
-
-    case F1WAE_FUN:
-      return (F1WAE *) F1WAEFun_new(
-        F1WAEFUN(self)->name,
-        F1WAEFUN(self)->arg,
-        F1WAE_clone(F1WAEFUN(self)->body)
-      );
-
-    default:
-      fprintf(stderr, "error: F1WAE_clone: unknown type\n");
-      exit(1);
-  }
-  return self;
-}
-
 int F1WAE_interp(F1WAE *self, FunList *funs, SubList *subs) {
   F1WAEAdd  *add;
   F1WAEWith *with;

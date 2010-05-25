@@ -80,8 +80,6 @@ inline F1WAEWith *F1WAEWith_new(F1WAEId*, F1WAE*, F1WAE*);
 inline F1WAEApp  *F1WAEApp_new(F1WAEId*, F1WAE*);
 inline F1WAEFun  *F1WAEFun_new(char*, char*, F1WAE*);
 
-F1WAE *F1WAE_clone(F1WAE*);
-
 F1WAE   *F1WAE_parse(char*);
 int     F1WAE_interp(F1WAE*, FunList*, SubList*);
 char    *F1WAE_print(F1WAE*);

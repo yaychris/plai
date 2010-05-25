@@ -88,10 +88,16 @@ void    F1WAE_free(F1WAE*);
 
 ////
 // deferred substitution
+typedef struct SubListNode SubListNode;
+
 struct SubList {
-  char    *name;
-  int     val;
-  SubList *next;
+  SubListNode *head;
+};
+
+struct SubListNode {
+  char        *name;
+  int         val;
+  SubListNode *next;
 };
 
 SubList *SubList_new();
@@ -102,13 +108,17 @@ void    SubList_free(SubList*);
 
 ////
 // function definitions linked list
+typedef struct FunListNode FunListNode;
 struct FunList {
-  F1WAEFun *fun;
-  FunList  *next;
+  FunListNode *head;
+};
+struct FunListNode {
+  F1WAEFun    *fun;
+  FunListNode *next;
 };
 
 FunList  *FunList_new();
-FunList  *FunList_addFun(FunList*, F1WAEFun*);
+FunList  *FunList_push(FunList*, F1WAEFun*);
 F1WAEFun *FunList_lookup(FunList*, char*);
 void      FunList_free(FunList*);
 

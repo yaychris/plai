@@ -189,33 +189,26 @@ void F1WAE_free(F1WAE *self) {
 
 SubList *SubList_new() {
   SubList *self = malloc(sizeof(SubList));
-  self->name = NULL;
-  self->val = 0;
-  self->next = NULL;
+  self->head = NULL;
   return self;
 }
 
 SubList *SubList_unshift(SubList *self, char *name, int val) {
-  SubList *list;
+  SubListNode *node = malloc(sizeof(SubListNode));
+  node->name = strdup(name);
+  node->val = val;
+  node->next = self->head;
+  self->head = node;
 
-  // non-empty list, prepend a next node
-  if (self->name != NULL) {
-    list = self;
-    self = SubList_new();
-    self->next = list;
-  }
-
-  self->name = strdup(name);
-  self->val = val;
   return self;
 }
 
 int SubList_lookup(SubList *self, char *name) {
-  SubList *iter;
+  SubListNode *iter;
 
-  iter = self;
+  iter = self->head;
   while(iter != NULL) {
-    if (iter->name != NULL && strcmp(iter->name, name) == 0) {
+    if (strcmp(iter->name, name) == 0) {
       return iter->val;
     }
     iter = iter->next;
@@ -226,16 +219,18 @@ int SubList_lookup(SubList *self, char *name) {
 }
 
 void SubList_free(SubList *self) {
-  SubList *next;
+  SubListNode *iter;
 
-  while (self != NULL) {
-    if (self->name != NULL) {
-      free(self->name);
+  iter = self->head;
+  while (iter != NULL) {
+    if (iter->name != NULL) {
+      free(iter->name);
     }
-    next = self->next;
-    free(self);
-    self = next;
+    self->head = iter->next;
+    free(iter);
+    iter = self->head;
   }
+  free(self);
 }
 
 
@@ -244,37 +239,33 @@ void SubList_free(SubList *self) {
 
 FunList *FunList_new() {
   FunList *list = malloc(sizeof(FunList));
-  list->fun = NULL;
-  list->next = NULL;
+  list->head = NULL;
   return list;
 }
 
-FunList *FunList_addFun(FunList *self, F1WAEFun *fun) {
-  FunList *new_list, *iter;
+FunList *FunList_push(FunList *self, F1WAEFun *fun) {
+  FunListNode *iter,
+              *node = malloc(sizeof(FunListNode));
+  node->fun = fun;
+  node->next = NULL;
 
-  if (self == NULL) {
-    return NULL;
-  }
-
-  if (self->fun == NULL) {
-    self->fun = fun;
+  if (self->head == NULL) {
+    self->head = node;
     return self;
   }
 
-  iter = self;
+  iter = self->head;
   while (iter->next != NULL) {
     iter = iter->next;
   }
-  new_list = FunList_new();
-  new_list->fun = fun;
-  iter->next = new_list;
+  iter->next = node;
   return self;
 }
 
 F1WAEFun *FunList_lookup(FunList *self, char *name) {
-  FunList *iter;
+  FunListNode *iter;
 
-  iter = self;
+  iter = self->head;
   while(iter != NULL) {
     if (strcmp(iter->fun->name, name) == 0) {
       return iter->fun;
@@ -287,14 +278,16 @@ F1WAEFun *FunList_lookup(FunList *self, char *name) {
 }
 
 void FunList_free(FunList *self) {
-  FunList *next;
+  FunListNode *iter;
 
-  while (self != NULL) {
-    if (self->fun != NULL) {
-      F1WAE_free((F1WAE *) self->fun);
+  iter = self->head;
+  while (iter != NULL) {
+    if (iter->fun != NULL) {
+      F1WAE_free((F1WAE *) iter->fun);
     }
-    next = self->next;
-    free(self);
-    self = next;
+    self->head = iter->next;
+    free(iter);
+    iter = self->head;
   }
+  free(self);
 }

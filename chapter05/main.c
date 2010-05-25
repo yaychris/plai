@@ -29,9 +29,13 @@ int main(int argc, char* argv[]) {
     FunList *funs = FunList_new();
     SubList *subs = SubList_new();
     
-    FunList_addFun(
+    FunList_push(
       funs,
       F1WAEFun_new("double", "x", F1WAE_parse("{+ x x}"))
+    );
+    FunList_push(
+      funs,
+      F1WAEFun_new("triple", "x", F1WAE_parse("{+ x {+ x x}}"))
     );
 
     printf(

@@ -83,8 +83,7 @@ inline F1WAEFun  *F1WAEFun_new(char*, char*, F1WAE*);
 F1WAE *F1WAE_clone(F1WAE*);
 
 F1WAE   *F1WAE_parse(char*);
-F1WAE   *F1WAE_subst(F1WAE*, char*, F1WAENum*);
-int     F1WAE_interp(F1WAE*, FunList*);
+int     F1WAE_interp(F1WAE*, FunList*, SubList*);
 char    *F1WAE_print(F1WAE*);
 void    F1WAE_free(F1WAE*);
 
@@ -98,7 +97,7 @@ struct SubList {
 };
 
 SubList *SubList_new();
-SubList *SubList_addVar(SubList*, char*, int);
+SubList *SubList_unshift(SubList*, char*, int);
 int     SubList_lookup(SubList*, char*);
 void    SubList_free(SubList*);
 

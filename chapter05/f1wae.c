@@ -92,64 +92,12 @@ F1WAE *F1WAE_clone(F1WAE *self) {
   return self;
 }
 
-F1WAE *F1WAE_subst(F1WAE *expr, char *name, F1WAENum *num) {
-  F1WAEAdd  *add;
-  F1WAEWith *with;
-  F1WAEId   *id;
-  F1WAEApp  *app;
-
-  switch (expr->type) {
-    case F1WAE_NUM:
-      return expr;
-
-    case F1WAE_ADD:
-      add = F1WAEADD(expr);
-      add->lhs = F1WAE_subst(add->lhs, name, num);
-      add->rhs = F1WAE_subst(add->rhs, name, num);
-      return (F1WAE *) add;
-
-    case F1WAE_WITH:
-      with = F1WAEWITH(expr);
-      with->expr = F1WAE_subst(with->expr, name, num);
-
-      if (strcmp(with->id->name, name) == 0) {
-        // new binding instance for this name, don't substitute
-        return expr;
-      } else {
-        // enter new scope and substitute
-        with->body = F1WAE_subst(with->body, name, num);
-        return (F1WAE *) with;
-      }
-
-    case F1WAE_APP:
-      app = F1WAEAPP(expr);
-      app->expr = F1WAE_subst(app->expr, name, num);
-      return (F1WAE *) app;
-
-    case F1WAE_ID:
-      id = F1WAEID(expr);
-      if (strcmp(name, id->name) == 0) {
-        // matching identifier, substitute with new num
-        F1WAE_free((F1WAE *) id);
-        return (F1WAE *) F1WAENum_new(num->val);
-      } else {
-        // no match
-        return expr;
-      }
-
-    default:
-      fprintf(stderr, "error: F1WAE_subst: unknown type\n");
-      exit(1);
-  }
-}
-
-int F1WAE_interp(F1WAE *self, FunList *funs) {
-  F1WAE     *body;
-  F1WAENum  *num;
+int F1WAE_interp(F1WAE *self, FunList *funs, SubList *subs) {
   F1WAEAdd  *add;
   F1WAEWith *with;
   F1WAEApp  *app;
   F1WAEFun  *fun;
+  SubList   *app_sub;
   int       result;
 
   switch (self->type) {
@@ -157,39 +105,41 @@ int F1WAE_interp(F1WAE *self, FunList *funs) {
       result = F1WAENUM(self)->val;
       break;
 
+    case F1WAE_ID:
+      result = SubList_lookup(subs, F1WAEID(self)->name);
+      break;
+
     case F1WAE_ADD:
       add = F1WAEADD(self);
-      result = F1WAE_interp(add->lhs, funs) + F1WAE_interp(add->rhs, funs);
+      result = F1WAE_interp(add->lhs, funs, subs) + F1WAE_interp(add->rhs, funs, subs);
       break;
 
     case F1WAE_WITH:
       with = F1WAEWITH(self);
-      num  = F1WAENum_new(F1WAE_interp(with->expr, funs));
-      with->body = F1WAE_subst(with->body, with->id->name, num);
+      subs = SubList_unshift(
+        subs,
+        with->id->name,
+        F1WAE_interp(with->expr, funs, subs)
+      );
 
-      result = F1WAE_interp(with->body, funs);
-
-      F1WAE_free((F1WAE *) num);
+      result = F1WAE_interp(with->body, funs, subs);
       break;
 
     case F1WAE_APP:
       app = F1WAEAPP(self);
       fun = FunList_lookup(funs, app->id->name);
-      body = (F1WAE *) F1WAE_clone(fun->body);
-      num = F1WAENum_new(F1WAE_interp(app->expr, funs));
 
-      result = F1WAE_interp(
-        F1WAE_subst(body, fun->arg, num),
-        funs
+      app_sub = SubList_new();
+      app_sub = SubList_unshift(
+        app_sub,
+        fun->arg,
+        F1WAE_interp(app->expr, funs, subs)
       );
 
-      F1WAE_free(body);
-      F1WAE_free((F1WAE *) num);
-      break;
+      result = F1WAE_interp(fun->body, funs, app_sub);
 
-    case F1WAE_ID:
-      fprintf(stderr, "error: F1WAE_interp: free identifier '%s'\n", F1WAEID(self)->name);
-      exit(1);
+      SubList_free(app_sub);
+      break;
 
     default:
       fprintf(stderr, "error: F1WAE_interp: unknown type\n");
@@ -286,28 +236,18 @@ SubList *SubList_new() {
   return self;
 }
 
-SubList *SubList_addVar(SubList *self, char *name, int val) {
-  SubList *iter;
+SubList *SubList_unshift(SubList *self, char *name, int val) {
+  SubList *list;
 
-  if (self == NULL) {
-    return NULL;
+  // non-empty list, prepend a next node
+  if (self->name != NULL) {
+    list = self;
+    self = SubList_new();
+    self->next = list;
   }
 
-  if (self->name == NULL) {
-    self->name = strdup(name);
-    self->val = val;
-    return self;
-  }
-
-  iter = self;
-  while (iter->next != NULL) {
-    iter = iter->next;
-  }
-
-  iter->next = SubList_new();
-  iter->next->name = strdup(name);
-  iter->next->val = val;
-
+  self->name = strdup(name);
+  self->val = val;
   return self;
 }
 
@@ -316,7 +256,7 @@ int SubList_lookup(SubList *self, char *name) {
 
   iter = self;
   while(iter != NULL) {
-    if (strcmp(iter->name, name) == 0) {
+    if (iter->name != NULL && strcmp(iter->name, name) == 0) {
       return iter->val;
     }
     iter = iter->next;

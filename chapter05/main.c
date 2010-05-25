@@ -26,19 +26,23 @@ int main(int argc, char* argv[]) {
   if (tree != NULL) {
     char *out = F1WAE_print(tree);
 
-    F1WAEFun *fun = F1WAEFun_new("double", "x", F1WAE_parse("{+ x x}"));
-    FunList *list = FunList_new();
-
-    FunList_addFun(list, fun);
+    FunList *funs = FunList_new();
+    SubList *subs = SubList_new();
+    
+    FunList_addFun(
+      funs,
+      F1WAEFun_new("double", "x", F1WAE_parse("{+ x x}"))
+    );
 
     printf(
       "%s\n%d\n",
       out,
-      F1WAE_interp(tree, list)
+      F1WAE_interp(tree, funs, subs)
     );
 
     F1WAE_free(tree);
-    FunList_free(list);
+    FunList_free(funs);
+    SubList_free(subs);
     free(out);
   }
   return 0;

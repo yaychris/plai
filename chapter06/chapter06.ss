@@ -1,14 +1,30 @@
 ;; The first three lines of this file were inserted by DrScheme. They record metadata
 ;; about the language level of this file in a form that our tools can easily process.
 #reader(planet plai/plai:1:20/lang/reader)
-(define-type FWAE
+(define-type FAE
   (num (n number?))
-  (add (lhs FWAE?)
-       (rhs FWAE?))
-  (with (name symbol?) (named-expr FWAE?) (body FWAE?))
+  (add (lhs FAE?) (rhs FAE?))
   (id (name symbol?))
-  (fun (param symbol?) (body FWAE?))
-  (app (fun-expr FWAE?) (arg-expr FWAE?)))
+  (fun (param symbol?) (body FAE?))
+  (app (fun-expr FAE?) (arg-expr FAE?)))
+
+(define-type FAE-Value
+  (numV (n number?))
+  (closureV (param symbol?)
+            (body FAE?)
+            (ds DefrdSub?)))
+
+(define-type DefrdSub
+  (mtSub)
+  (aSub (name symbol?) (value FAE-Value?) (ds DefrdSub?)))
+
+(define (lookup name ds)
+  (type-case DefrdSub ds
+    (mtSub () (error 'lookup "no binding for indentifier"))
+    (aSub (bound-name bound-value rest-ds)
+          (if (symbol=? bound-name name)
+              bound-value
+              (lookup name rest-ds)))))
 
 (define (parse sexp)
   (cond
@@ -16,47 +32,30 @@
     ((symbol? sexp) (id sexp))
     ((list? sexp)
      (case (first sexp)
-       ((with) (with (first (second sexp))
-                     (parse (second (second sexp)))
-                     (parse (third sexp))))
+       ((with) (app
+                (fun (first (second sexp))
+                     (parse (third sexp)))
+                (parse (second (second sexp)))))
        ((fun) (fun (first (second sexp))
                    (parse (third sexp))))
-       ((app) (app (parse (second sexp))
-                   (parse (third sexp))))
        ((+) (add (parse (second sexp))
-                 (parse (third sexp))))))))
+                 (parse (third sexp))))
+       (else (app (parse (first sexp))
+                  (parse (second sexp))))))))
 
-(define (subst expr sub-id val)
-  (type-case FWAE expr
-    (num (n) expr)
-    (add (l r) (add (subst l sub-id val)
-                    (subst r sub-id val)))
-    (with (bound-id named-expr bound-body)
-          (if (symbol=? bound-id sub-id)
-              (with bound-id
-                    (subst named-expr sub-id val)
-                    bound-body)
-              (with bound-id
-                    (subst named-expr sub-id val)
-                    (subst bound-body sub-id val))))
-    (id (v) (if (symbol=? v sub-id) val expr))
-    (else #f)))
+(define (num+ l r)
+  (numV (+ (numV-n l) (numV-n r))))
 
-(define (add-numbers l r)
-  (+ (num-n l) (num-n r)))
-
-(define (interp expr)
-  (type-case FWAE expr
-    (num (n) n)
-    (add (l r) (add-numbers (interp l) (interp r)))
-    (with (bound-id named-expr bound-body)
-          (interp (subst bound-body
-                         bound-id
-                         (interp named-expr))))
-    (id (v) (error 'calc "free identifier"))
-    (fun (bound-id bound-body) expr)
+(define (interp expr ds)
+  (type-case FAE expr
+    (num (n) (numV n))
+    (add (l r) (num+ (interp l ds) (interp r ds)))
+    (id (v) (lookup v ds))
+    (fun (bound-id bound-body)
+         (closureV bound-id bound-body ds))
     (app (fun-expr arg-expr)
-         (local ((define fun-val (interp fun-expr)))
-           (interp (subst (fun-body fun-val)
-                          (fun-param fun-val)
-                          (interp arg-expr)))))))
+         (local ((define fun-val (interp fun-expr ds)))
+           (interp (closureV-body fun-val)
+                   (aSub (closureV-param fun-val)
+                         (interp arg-expr ds)
+                         (closureV-ds fun-val)))))))

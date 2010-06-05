@@ -41,11 +41,10 @@ FAEFun *FAEFun_new(FAEId *arg, FAE *body) {
   return fun;
 }
 
-int FAE_interp(FAE *self, FunList *funs, SubList *subs) {
-  /*FAEAdd  *add;
+int FAE_interp(FAE *self, SubList **subs) {
+  FAEAdd  *add;
   FAEApp  *app;
   FAEFun  *fun;
-  SubList *app_sub;
   int     result;
 
   switch (self->type) {
@@ -54,35 +53,33 @@ int FAE_interp(FAE *self, FunList *funs, SubList *subs) {
       break;
 
     case FAE_ID:
-      result = SubList_lookup(subs, FAEID(self)->name);
+      result = SubList_lookup(*subs, FAEID(self)->name);
       break;
 
     case FAE_ADD:
       add = FAEADD(self);
-      result = FAE_interp(add->lhs, funs, subs) + FAE_interp(add->rhs, funs, subs);
+      result = FAE_interp(add->lhs, subs) + FAE_interp(add->rhs, subs);
       break;
 
     case FAE_APP:
       app = FAEAPP(self);
-      fun = FunList_lookup(funs, app->id->name);
+      fun = FAEFUN(app->funexpr);
 
-      app_sub = SubList_new();
-      app_sub = SubList_unshift(
-        app_sub,
-        fun->arg,
-        FAE_interp(app->expr, funs, subs)
+      SubList_unshift(
+        subs,
+        fun->arg->name,
+        FAE_interp(app->argexpr, subs)
       );
 
-      result = FAE_interp(fun->body, funs, app_sub);
+      result = FAE_interp(fun->body, subs);
 
-      SubList_free(app_sub);
       break;
 
     default:
       fprintf(stderr, "error: FAE_interp: unknown type\n");
       exit(1);
   }
-  return result;*/
+  return result;
 }
 
 char *FAE_print(FAE *self) {
@@ -145,9 +142,11 @@ void FAE_free(FAE *self) {
       break;
 
     case FAE_FUN:
-      FAE_free((FAEId *) FAEFUN(self)->arg);
+      FAE_free((FAE *) FAEFUN(self)->arg);
       FAE_free(FAEFUN(self)->body);
       break;
+    default:
+      fprintf(stderr, "error: FAE_free: unknown type");
   }
   free(self);
 }
@@ -158,24 +157,24 @@ void FAE_free(FAE *self) {
 
 SubList *SubList_new() {
   SubList *self = malloc(sizeof(SubList));
-  self->head = NULL;
+  self->name = NULL;
+  self->val  = 0;
+  self->next = NULL;
   return self;
 }
 
-SubList *SubList_unshift(SubList *self, char *name, int val) {
-  SubListNode *node = malloc(sizeof(SubListNode));
+void SubList_unshift(SubList **self, char *name, int val) {
+  SubList *node = malloc(sizeof(SubList));
   node->name = strdup(name);
   node->val = val;
-  node->next = self->head;
-  self->head = node;
-
-  return self;
+  node->next = *self;
+  *self = node;
 }
 
 int SubList_lookup(SubList *self, char *name) {
-  SubListNode *iter;
+  SubList *iter;
 
-  iter = self->head;
+  iter = self;
   while(iter != NULL) {
     if (strcmp(iter->name, name) == 0) {
       return iter->val;
@@ -188,75 +187,13 @@ int SubList_lookup(SubList *self, char *name) {
 }
 
 void SubList_free(SubList *self) {
-  SubListNode *iter;
+  SubList *iter;
 
-  iter = self->head;
-  while (iter != NULL) {
+  for (iter = self; iter != NULL; iter = self) {
     if (iter->name != NULL) {
       free(iter->name);
     }
-    self->head = iter->next;
+    self = iter->next;
     free(iter);
-    iter = self->head;
   }
-  free(self);
-}
-
-
-////
-// function definitions list
-
-FunList *FunList_new() {
-  FunList *list = malloc(sizeof(FunList));
-  list->head = NULL;
-  return list;
-}
-
-FunList *FunList_push(FunList *self, FAEFun *fun) {
-  FunListNode *iter,
-              *node = malloc(sizeof(FunListNode));
-  node->fun = fun;
-  node->next = NULL;
-
-  if (self->head == NULL) {
-    self->head = node;
-    return self;
-  }
-
-  iter = self->head;
-  while (iter->next != NULL) {
-    iter = iter->next;
-  }
-  iter->next = node;
-  return self;
-}
-
-FAEFun *FunList_lookup(FunList *self, char *name) {
-  /*FunListNode *iter;
-
-  iter = self->head;
-  while(iter != NULL) {
-    if (strcmp(iter->fun->name, name) == 0) {
-      return iter->fun;
-    }
-    iter = iter->next;
-  }
-
-  fprintf(stderr, "error: FunList_lookup: function '%s' not found\n", name);
-  exit(1);*/
-}
-
-void FunList_free(FunList *self) {
-  FunListNode *iter;
-
-  iter = self->head;
-  while (iter != NULL) {
-    if (iter->fun != NULL) {
-      FAE_free((FAE *) iter->fun);
-    }
-    self->head = iter->next;
-    free(iter);
-    iter = self->head;
-  }
-  free(self);
 }

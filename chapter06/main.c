@@ -24,25 +24,15 @@ int main(int argc, char* argv[]) {
   }
 
   if (tree != NULL) {
-    char *out = FAE_print(tree);
-
-    /*FunList *funs = FunList_new();
     SubList *subs = SubList_new();
-    
-    FunList_push(
-      funs,
-      FAEFun_new("double", "x", FAE_parse("{+ x x}"))
-    );
-    FunList_push(
-      funs,
-      FAEFun_new("triple", "x", FAE_parse("{+ x {+ x x}}"))
-    );*/
 
+    char *out = FAE_print(tree);
     printf("%s\n", out);
 
+    //printf("%d\n", FAE_interp(tree, &subs));
+
     FAE_free(tree);
-    //FunList_free(funs);
-    //SubList_free(subs);
+    SubList_free(subs);
     free(out);
   }
   return 0;

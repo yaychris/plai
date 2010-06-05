@@ -19,5 +19,6 @@ rebuild: clean all
 clean:
 	rm -f a.out ${OBJ}
 	rm -f grammar.c
+	rm -dfr a.out.dSYM
 
 .PHONY: clean rebuild

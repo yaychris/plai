@@ -12,7 +12,6 @@
 #define FAEFUN(x)  ((FAEFun *) (x))
 
 typedef unsigned long Expr;
-typedef struct FunList FunList;
 typedef struct SubList SubList;
 
 // node types
@@ -20,7 +19,6 @@ typedef enum {
   FAE_NUM,
   FAE_ADD,
   FAE_ID,
-  FAE_WITH,
   FAE_APP,
   FAE_FUN
 } FAEType;
@@ -70,45 +68,23 @@ inline FAEApp *FAEApp_new(FAE*, FAE*);
 inline FAEFun *FAEFun_new(FAEId*, FAE*);
 
 FAE  *FAE_parse(char*);
-int  FAE_interp(FAE*, FunList*, SubList*);
+int  FAE_interp(FAE*, SubList**);
 char *FAE_print(FAE*);
 void FAE_free(FAE*);
 
 
 ////
 // deferred substitution
-typedef struct SubListNode SubListNode;
 
 struct SubList {
-  SubListNode *head;
-};
-
-struct SubListNode {
-  char        *name;
-  int         val;
-  SubListNode *next;
+  char    *name;
+  int     val;
+  SubList *next;
 };
 
 SubList *SubList_new();
-SubList *SubList_unshift(SubList*, char*, int);
+void    SubList_unshift(SubList**, char*, int);
 int     SubList_lookup(SubList*, char*);
 void    SubList_free(SubList*);
-
-
-////
-// function definitions linked list
-typedef struct FunListNode FunListNode;
-struct FunList {
-  FunListNode *head;
-};
-struct FunListNode {
-  FAEFun      *fun;
-  FunListNode *next;
-};
-
-FunList *FunList_new();
-FunList *FunList_push(FunList*, FAEFun*);
-FAEFun  *FunList_lookup(FunList*, char*);
-void    FunList_free(FunList*);
 
 #endif
